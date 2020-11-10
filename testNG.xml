@@ -1,0 +1,17 @@
+<suite name="RetryFailedSuite" verbose="1">
+<listeners>
+<listener class-name="Listeners.AnnotationTransformer" />
+<listener class-name="Listeners.ExtentReporterNG" />
+<listener class-name="Listeners.RetryAnalyzer" />
+
+</listeners>
+	<test name = "RetryFailedTests">
+		<classes>
+			<class name = "TestCases.InsertRecordTC" />
+			<class name = "TestCases.InsertMultipleRecordsTC" />
+			<class name = "TestCases.UploadCSV_TC" />
+			<class name = "TestCases.BookKeeper_taxReliefTC" />
+			<class name = "TestCases.Governer_TC" />			
+		</classes>
+	</test>
+</suite>
