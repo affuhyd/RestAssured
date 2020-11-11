@@ -4,7 +4,13 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.Period;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -20,65 +26,72 @@ public class TestUtils {
 
 	public static long PAGE_LOAD_TIMEOUT = 20;
 	public static long IMPLICIT_WAIT = 10;
-	public static long STATUSCODE_ACCEPTED = 202;
-	public static String insertPersonAPI = "/calculator/insert"; 
+	public static int STATUSCODE_ACCEPTED = 202;
+	public static int STATUSCODE_OK = 200;
+	public static String insertPersonAPI = "/calculator/insert";
 	public static String insertMultiplePersonsAPI = "/calculator/insert";
 	public static String taxReliefAPI = "/calculator/taxRelief";
-	public static String uploadcsvAPI = "/calculator/uploadLargeFileForInsertionToDatabase" ;
-
+	public static String uploadcsvAPI = "/calculator/uploadLargeFileForInsertionToDatabase";
+	public static String rakeDatabase = "/calculator/rakeDatabase";
+	public static String ChromeDriverPath = "src/test/resources/chromedriver.exe";
+	public static String FireFoxDriverPath = "src/test/resources/geckodriver.exe";
+	public static String filePath_CSV = "src/test/java/TestData/Sample_CitizensData.csv";
+	
 	static Workbook book;
 	static Sheet sheet;
 	static List<InsertRecordPOJO> ls;
 
-	public static String getMultiple() {
+	public static double calculate_taxRelief(InsertRecordPOJO record) throws ParseException {
 
-		String json = "[{\"birthday\":\"01012011\",\"gender\":\"M\",\"name\":\"Josef\",\"natid\":\"S3201111Y\",\"salary\":\"345333\",\"tax\":\"0.9\"},{\"birthday\":\"01012011\",\"gender\":\"F\",\"name\":\"Jasmine\",\"natid\":\"S3211111Y\",\"salary\":\"345333\",\"tax\":\"0.9\"}]";
-		return json;
-
-		/*
-		 * List<InsertRecordPOJO> ls = new ArrayList<InsertRecordPOJO>();
-		 * 
-		 * ls.add(record) InsertMultipleRecordPOJO records = new
-		 * InsertMultipleRecordPOJO(); records.setMultipleRecords(ls);
-		 */
-
-	}
-
-	public static void calculate_taxRelief(InsertRecordPOJO record) {
-
-		double AgeVariable = 0;
+		double AgeVariable = getAgeVariable(record);
 		Double salary = Double.parseDouble(record.getSalary());
 		Double taxPaid = Double.parseDouble(record.getTax());
-
 		double taxRelief = genderbonus(record) + (salary - taxPaid) * (AgeVariable);
 
+		return taxRelief;
 	}
 
 	public static double genderbonus(InsertRecordPOJO record) {
-		if (record.getGender().equalsIgnoreCase("male"))
+		if (record.getGender().equalsIgnoreCase("male") || record.getGender().equalsIgnoreCase("m"))
 			return 0.00;
 		else
 			return 500.00;
 	}
 
-	public static void getAgeVariable(InsertRecordPOJO record) {
+	public static double getAgeVariable(InsertRecordPOJO record) throws ParseException {
+		double age = age(record.getBirthday());
 
-		record.getBirthday();
-
+		if (age <= 18)
+			return 1.0;
+		if (age > 18 && age <= 35)
+			return 0.8;
+		if (age > 35 && age <= 50)
+			return 0.5;
+		if (age > 50 && age <= 75)
+			return 0.367;
+		if (age >= 76)
+			return 0.05;
+		else
+			return 0.00;
 	}
 
-	public static int age(Date birthday, Date date) {
-		DateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
-		int d1 = Integer.parseInt(formatter.format(birthday));
-		int d2 = Integer.parseInt(formatter.format(date));
-		int age = (d2 - d1) / 10000;
-		return age;
+	public static double age(String birthday) throws ParseException {
+		DateFormat formatter = new SimpleDateFormat("ddMMyyyy");
+		Date date = formatter.parse(birthday);
+		// Converting obtained Date object to LocalDate object
+		Instant instant = date.toInstant();
+		ZonedDateTime zone = instant.atZone(ZoneId.systemDefault());
+		LocalDate givenDate = zone.toLocalDate();
+		// Calculating the difference between given date to current date.
+		Period period = Period.between(givenDate, LocalDate.now());
+
+		return period.getYears();
 	}
 
 	public static Object[][] getData(String sheetName) {
 		FileInputStream file = null;
 		try {
-			file = new FileInputStream("src/test/resources/testData.xlsx");
+			file = new FileInputStream("src/test/java/TestData/testData.xlsx");
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
@@ -99,15 +112,14 @@ public class TestUtils {
 		return data;
 
 	}
-	
+
 	public static List<InsertRecordPOJO> insertMultipleRecords(Object[][] data) {
-		 int rows = data.length;
-		//int columns = data[0].length;
-		
-		for(int i=0; i<rows; i++) {
-			ls.add(new InsertRecordPOJO(data[i][0].toString(),data[i][1].toString(),data[i][2].toString(),data[i][3].toString(),data[i][4].toString(),data[i][5].toString()));
+		int rows = data.length;
+		// int columns = data[0].length;
+		for (int i = 0; i < rows; i++) {
+			ls.add(new InsertRecordPOJO(data[i][0].toString(), data[i][1].toString(), data[i][2].toString(),
+					data[i][3].toString(), data[i][4].toString(), data[i][5].toString()));
 		}
-		
 		return ls;
 	}
 }

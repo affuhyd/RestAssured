@@ -5,6 +5,7 @@ import static io.restassured.RestAssured.given;
 import java.io.IOException;
 import java.util.List;
 
+import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -13,7 +14,6 @@ import Utilities.TestUtils;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
-import pojo.InsertMultipleRecordPOJO_ToBeDeleted;
 import pojo.InsertRecordPOJO;
 
 public class InsertMultipleRecordsTC extends TestBase {
@@ -36,5 +36,6 @@ public class InsertMultipleRecordsTC extends TestBase {
 		System.out.println("****************");
 		System.out.println(response.asString());
 		System.out.println(response.getStatusCode());
+		Assert.assertEquals(response.getStatusCode(), TestUtils.STATUSCODE_ACCEPTED);
 	}
 }
